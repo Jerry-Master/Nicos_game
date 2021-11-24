@@ -1,8 +1,8 @@
-let WIDTH = 300;
-let HEIGHT = 300;
-let N = 10, M = 15;
-let hor_step = WIDTH / M;
-let ver_step = HEIGHT / N;
+let WIDTH = 700;
+let HEIGHT = 700;
+let N, M;
+let hor_step;
+let ver_step;
 let FRAMES = 0;
 let last_frame = FRAMES-6;
 let TOTAL_PLAYERS = 3;
@@ -10,7 +10,7 @@ let current_player = 0;
 let turns = 0;
 let disabled_players = Array(8).fill(false);
 
-let grid = Array(M).fill().map(()=>Array(N).fill().map(()=>Array(1).fill(0)));
+let grid;
 
 let game_started = false;
 function startGame(){
@@ -23,6 +23,9 @@ function startGame(){
   M = sliderM.value();
   msgN.html('N = ' + str(N));
   msgM.html('M = ' + str(M));
+  
+  hor_step = WIDTH / M;
+  ver_step = HEIGHT / N;
   
   grid = Array(M).fill().map(()=>Array(N).fill().map(()=>Array(1).fill(0)));
   
@@ -79,9 +82,9 @@ function draw() {
   }
   if (game_started){
     background(255);
-
-    let n = 10, m = 15;
-    draw_grid(n,m);
+  
+    console.log(N,M);
+    draw_grid(N,M);
 
     let num_players_balls = Array(TOTAL_PLAYERS).fill(0);
     for (let i = 0; i < M; i++){
