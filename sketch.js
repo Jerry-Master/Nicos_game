@@ -128,7 +128,7 @@ function mouseClicked(){
   }
 }
 
-function touchStarted(){
+function touchEnded(){
   if (can_move && mouseX < WIDTH && mouseY < HEIGHT && mouseX >= 0 && mouseY >= 0 && FRAMES > 30){
     movement();
   }
