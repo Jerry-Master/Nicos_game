@@ -4,7 +4,6 @@ let N, M;
 let hor_step;
 let ver_step;
 let FRAMES = 0;
-let last_frame = FRAMES-6;
 let TOTAL_PLAYERS = 3;
 let current_player = 0;
 let turns = 0;
@@ -77,12 +76,12 @@ function draw() {
     msgN.html('N = ' + str(N));
     msgM.html('M = ' + str(M));
   }
-  FRAMES++;
-  if (FRAMES >= 1000000){
-    FRAMES = 0;
-    last_frame = -1;
-  }
-  if (game_started){
+  else {
+    FRAMES++;
+    if (FRAMES >= 1000000){
+      FRAMES = 0;
+      last_frame = -1;
+    }
     background(255);
   
     draw_grid(N,M);
@@ -124,15 +123,13 @@ function draw_grid(n,m){
 }
 
 function mouseClicked(){
-  if (can_move && mouseX < WIDTH && mouseY < HEIGHT && mouseX >= 0 && mouseY >= 0){
-    last_frame = FRAMES;
+  if (can_move && mouseX < WIDTH && mouseY < HEIGHT && mouseX >= 0 && mouseY >= 0 && FRAMES > 30){
     movement();
   }
 }
 
 function touchStarted(){
-  if (can_move && mouseX < WIDTH && mouseY < HEIGHT && mouseX >= 0 && mouseY >= 0){
-    last_frame = FRAMES;
+  if (can_move && mouseX < WIDTH && mouseY < HEIGHT && mouseX >= 0 && mouseY >= 0 && FRAMES > 30){
     movement();
   }
 }
