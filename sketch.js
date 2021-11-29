@@ -9,6 +9,7 @@ let TOTAL_PLAYERS = 3;
 let current_player = 0;
 let turns = 0;
 let disabled_players = Array(8).fill(false);
+let can_move = true;
 
 let grid;
 
@@ -79,11 +80,11 @@ function draw() {
   FRAMES++;
   if (FRAMES >= 1000000){
     FRAMES = 0;
+    last_frame = -1;
   }
   if (game_started){
     background(255);
   
-    console.log(N,M);
     draw_grid(N,M);
 
     let num_players_balls = Array(TOTAL_PLAYERS).fill(0);
@@ -123,17 +124,32 @@ function draw_grid(n,m){
 }
 
 function mouseClicked(){
-  let _=0;
-  while (disabled_players[current_player] || _==8){
-    current_player++;
-    current_player = current_player % TOTAL_PLAYERS;
-    _++;
-  }
-  if (FRAMES - last_frame > 10 && mouseX < WIDTH && mouseY < HEIGHT && mouseX >= 0 && mouseY >= 0 && !disabled_players[current_player]){
+  if (can_move && mouseX < WIDTH && mouseY < HEIGHT && mouseX >= 0 && mouseY >= 0){
     last_frame = FRAMES;
+    movement();
+  }
+}
+
+function touchStarted(){
+  if (can_move && mouseX < WIDTH && mouseY < HEIGHT && mouseX >= 0 && mouseY >= 0){
+    last_frame = FRAMES;
+    movement();
+  }
+}
+
+function movement(){
+  if (game_started){
+    can_move = false;
+    let _=0;
+    while (disabled_players[current_player] || _==8){
+      current_player++;
+      current_player = current_player % TOTAL_PLAYERS;
+      _++;
+    }
+      
     let x = int(mouseX / hor_step);
     let y = int(mouseY / ver_step);
-    
+
     let adj = compute_adj(x,y);
     if (grid[x][y][0] < adj){
       if (grid[x][y][0] > 0){
@@ -155,10 +171,12 @@ function mouseClicked(){
       explode(x,y).then(function(value){
         current_player++;
         current_player = current_player % TOTAL_PLAYERS;
+        can_move = true;
       });
     } else {
       current_player++;
       current_player = current_player % TOTAL_PLAYERS;
+      can_move = true;
     }
   }
 }
@@ -174,7 +192,7 @@ async function explode(x,y){
       let b = grid[x][y].pop();
       let x2 = x + 1 + dirs[k][0];
       let y2 = y + 1 + dirs[k][1];
-      if (grid[x2-1][y2-1][0] < compute_adj(x2-1,y2-1)){
+      if (true || grid[x2-1][y2-1][0] < compute_adj(x2-1,y2-1)){
         b.setPosition(x2, y2);
         grid[x2-1][y2-1].push(b);
         grid[x2-1][y2-1][0]++;
@@ -184,10 +202,14 @@ async function explode(x,y){
       }
     }
     await sleep(1000);
+    let arr = Array(K);
     for (let k = 0; k < K; k++){
       let x2 = x + 1 + dirs[k][0];
       let y2 = y + 1 + dirs[k][1];
-      await explode(x2-1, y2-1);
+      arr[k] = explode(x2-1, y2-1);
+    }
+    for (let k = 0; k < K; k++){
+      await arr[k];
     }
   }
 }
@@ -221,6 +243,7 @@ function compute_dirs(x,y){
   } else if (y == N-1){
     dirs = [[-1,0], [0,-1], [1,0]];
   }
+  dirs.push(...[[0,0],[0,0],[0,0],[0,0]]);
   return dirs;
 }
 
