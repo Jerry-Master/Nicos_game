@@ -11,8 +11,64 @@ let disabled_players = Array(8).fill(false);
 let can_move = true;
 
 let grid;
-
+let saved_states = {'TOTAL_PLAYERS': [TOTAL_PLAYERS], 'current_player': [current_player], 'turns': [turns], 'disabled_players': [disabled_players], 'can_move': [can_move], 'grid': []};
 let game_started = false;
+function undo(){
+  if (game_started){
+    TOTAL_PLAYERS = saved_states.TOTAL_PLAYERS.pop();
+    current_player = saved_states.current_player.pop();
+    turns = saved_states.turns.pop();
+    disabled_players = saved_states.disabled_players.pop();
+    can_move = saved_states.can_move.pop();
+    grid = saved_states.grid.pop();
+    console.log(saved_states.TOTAL_PLAYERS);
+  }
+}
+function copy_(aObject) {
+  if (!aObject) {
+    return aObject;
+  }
+
+  let v;
+  let bObject = Array(M).fill().map(()=>Array(N).fill().map(()=>Array(1).fill(0)));
+  for (let i = 0; i < M; i++){
+      for (let j = 0; j < N; j++){
+        let num_balls = aObject[i][j][0];
+        bObject[i][j][0] = num_balls;
+        for (let k = 0; k < num_balls; k++){
+          orig = aObject[i][j][k+1];
+          bObject[i][j].push(orig.copy());
+        }
+      }
+  }
+
+  return bObject;
+}
+function update_states(){
+  saved_states.TOTAL_PLAYERS.push(TOTAL_PLAYERS);
+  saved_states.current_player.push(current_player);
+  saved_states.turns.push(turns);
+  saved_states.disabled_players.push(disabled_players);
+  saved_states.can_move.push(can_move);
+  saved_states.grid.push(copy_(grid));
+  
+  if (saved_states.TOTAL_PLAYERS.length > 10){
+    saved_states.TOTAL_PLAYERS.shift();
+    saved_states.current_player.shift();
+    saved_states.turns.shift();
+    saved_states.disabled_players.shift();
+    saved_states.can_move.shift();
+    saved_states.grid.shift();
+  }
+}
+
+let time_step = 1000;
+async function accelerate(){
+  time_step = 100;
+  await sleep(2000);
+  time_step = 1000;
+}
+
 function startGame(){
   game_started = true;
   
@@ -28,6 +84,7 @@ function startGame(){
   ver_step = HEIGHT / N;
   
   grid = Array(M).fill().map(()=>Array(N).fill().map(()=>Array(1).fill(0)));
+  //saved_states.grid[0] = grid;
   
   button.remove();
 }
@@ -47,14 +104,14 @@ function setup() {
   msg = createP('8');
   msg.position(200, HEIGHT+30);
   
-  sliderN = createSlider(1, 100, 10, 1);
+  sliderN = createSlider(1, 20, 10, 1);
   sliderN.position(250, HEIGHT+30);
   sliderN.style('width', '200px');
   
   msgN = createP('N = ' + str(N));
   msgN.position(250, HEIGHT-10);
   
-  sliderM = createSlider(1, 100, 15, 1);
+  sliderM = createSlider(1, 20, 15, 1);
   sliderM.position(250, HEIGHT+60);
   sliderM.style('width', '200px');
   
@@ -64,6 +121,14 @@ function setup() {
   button = createButton("Start Game");
   button.mousePressed(startGame);
   button.position(WIDTH / 2, HEIGHT / 2);
+  
+  button2 = createButton("Undo");
+  button2.mousePressed(undo);
+  button2.position(WIDTH, HEIGHT);
+  
+  button3 = createButton("Accelerate");
+  button3.mousePressed(accelerate);
+  button3.position(WIDTH, HEIGHT+30);
 }
 
 function draw() { 
@@ -85,7 +150,7 @@ function draw() {
     background(255);
   
     draw_grid(N,M);
-
+    
     let num_players_balls = Array(TOTAL_PLAYERS).fill(0);
     for (let i = 0; i < M; i++){
       for (let j = 0; j < N; j++){
@@ -128,13 +193,14 @@ function mouseClicked(){
   }
 }
 
-function touchEnded(){
+function touchStarted(){
   if (can_move && mouseX < WIDTH && mouseY < HEIGHT && mouseX >= 0 && mouseY >= 0 && FRAMES > 30){
     movement();
   }
 }
 
 function movement(){
+  update_states();
   if (game_started){
     can_move = false;
     let _=0;
@@ -198,7 +264,7 @@ async function explode(x,y){
         grid[x2-1][y2-1][i].setPlayer(current_player);
       }
     }
-    await sleep(1000);
+    await sleep(time_step);
     let arr = Array(K);
     for (let k = 0; k < K; k++){
       let x2 = x + 1 + dirs[k][0];

@@ -67,4 +67,8 @@ class Ball{
   getPlayer(){
     return this.player;
   }
+  
+  copy(){
+    return new Ball(this.x, this.y, this.h_step, this.v_step, this.player);
+  }
 }
